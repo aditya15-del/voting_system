@@ -177,9 +177,9 @@ export default function VotingPage() {
                                         type="range"
                                         min="1"
                                         max="10"
-                                        step="1"
+                                        step="0.5"
                                         value={score}
-                                        onChange={(e) => setScore(parseInt(e.target.value))}
+                                        onChange={(e) => setScore(parseFloat(e.target.value))}
                                         className="w-full h-4 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                     />
 

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS votes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     contestant_id UUID REFERENCES contestants(id) ON DELETE CASCADE,
     device_id TEXT NOT NULL,
-    score INTEGER CHECK (score >= 1 AND score <= 10),
+    score NUMERIC(3,1) CHECK (score >= 1 AND score <= 10),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE (contestant_id, device_id) -- Ensures one vote per device per contestant
 );
