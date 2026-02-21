@@ -87,7 +87,7 @@ export default function RevealPage() {
     const filteredResults = results.filter(r => r.category === control?.reveal_category)
 
     return (
-        <div className="min-h-screen bg-[#050510] text-white overflow-hidden flex flex-col items-center justify-center p-12 font-sans relative">
+        <div className="min-h-screen bg-[#050510] text-white overflow-x-hidden flex flex-col items-center justify-center p-4 md:p-12 font-sans relative">
 
             {/* Background Particles/Glow */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -114,22 +114,24 @@ export default function RevealPage() {
                                 <Star className="w-16 h-16 text-yellow-500 fill-yellow-500 animate-pulse shadow-[0_0_50px_rgba(234,179,8,0.3)]" />
                             </div>
                         </div>
-                        <h1 className="text-6xl font-black uppercase tracking-[0.2em] bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent px-4">
+                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent px-4">
                             Grand Result <span className="text-yellow-500">Ceremony</span>
                         </h1>
-                        <p className="text-xl text-white/40 tracking-[0.5em] font-mono uppercase">Waiting for Admin to trigger reveal</p>
+                        <p className="text-sm md:text-xl text-white/40 tracking-[0.2em] md:tracking-[0.5em] font-mono uppercase px-4">Waiting for Admin to trigger reveal</p>
                     </motion.div>
                 ) : (
                     <motion.div
                         key="reveal-active"
                         className="w-full max-w-6xl space-y-24 text-center"
                     >
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-bold tracking-[1em] text-yellow-500/50 uppercase">{control.reveal_category} Leaderboard</h2>
-                            <div className="h-1 w-48 bg-yellow-500 mx-auto rounded-full" />
+                        <div className="space-y-4 px-4 w-full">
+                            <h2 className="text-xl md:text-2xl font-bold tracking-[0.2em] md:tracking-[1em] text-yellow-500/50 uppercase break-words leading-relaxed">
+                                {control.reveal_category} Leaderboard
+                            </h2>
+                            <div className="h-1 w-24 md:w-48 bg-yellow-500 mx-auto rounded-full" />
                         </div>
 
-                        <div className="grid grid-cols-3 gap-12 items-end min-h-[400px]">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-end min-h-fit md:min-h-[400px] py-12">
 
                             {/* 2nd Place */}
                             <div className="flex flex-col items-center gap-6">
@@ -216,26 +218,28 @@ export default function RevealPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="max-w-4xl mx-auto bg-white/5 backdrop-blur-2xl rounded-3xl p-8 border border-white/10"
                             >
-                                <table className="w-full">
-                                    <thead className="text-[10px] uppercase tracking-[0.4em] text-white/40 border-b border-white/5">
-                                        <tr>
-                                            <th className="py-4 text-left px-6">Rank</th>
-                                            <th className="py-4 text-left px-6">{control.reveal_category}</th>
-                                            <th className="py-4 text-center px-6">Avg Score</th>
-                                            <th className="py-4 text-right px-6">Votes</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {filteredResults.map((r, i) => (
-                                            <tr key={r.id} className={`${i < 3 ? 'text-yellow-500/80 font-bold' : 'text-white/60'}`}>
-                                                <td className="py-6 px-6 text-left font-mono">#{i + 1}</td>
-                                                <td className="py-6 px-6 text-left uppercase tracking-tight">{r.name}</td>
-                                                <td className="py-6 px-6 text-center font-black text-xl">{r.avg_score}</td>
-                                                <td className="py-6 px-6 text-right font-mono text-sm opacity-40">{r.vote_count}</td>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full min-w-[600px] md:min-w-0">
+                                        <thead className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.4em] text-white/40 border-b border-white/5">
+                                            <tr>
+                                                <th className="py-4 text-left px-4 md:px-6">Rank</th>
+                                                <th className="py-4 text-left px-4 md:px-6">{control.reveal_category}</th>
+                                                <th className="py-4 text-center px-4 md:px-6">Avg Score</th>
+                                                <th className="py-4 text-right px-4 md:px-6">Votes</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {filteredResults.map((r, i) => (
+                                                <tr key={r.id} className={`${i < 3 ? 'text-yellow-500/80 font-bold' : 'text-white/60'}`}>
+                                                    <td className="py-6 px-6 text-left font-mono">#{i + 1}</td>
+                                                    <td className="py-6 px-6 text-left uppercase tracking-tight">{r.name}</td>
+                                                    <td className="py-6 px-6 text-center font-black text-xl">{r.avg_score}</td>
+                                                    <td className="py-6 px-6 text-right font-mono text-sm opacity-40">{r.vote_count}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </motion.div>
                         )}
                     </motion.div>

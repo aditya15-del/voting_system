@@ -47,16 +47,13 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-400 text-sm mb-6">
-            <Star className="w-4 h-4 text-amber-400" />
-            <span>Live Talent Show Voting System</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 text-lg md:text-xl mb-6">
+            <Star className="w-5 h-5 text-amber-400" />
+            <span className="font-semibold text-white">Campus Creators and Talents Carnival</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent text-center">
             The Stage is Set.
           </h1>
-          <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto">
-            A real-time, cinematic experience for talent shows. Secure, fair, and designed for maximum engagement.
-          </p>
         </motion.div>
 
         {/* Navigation Grid */}
@@ -97,9 +94,9 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-20 text-center text-zinc-600 text-sm"
+          className="mt-20 text-center text-zinc-500 text-sm font-medium tracking-widest uppercase"
         >
-          <p>Powered by Next.js & Supabase Realtime</p>
+          <p>Generative AI Community</p>
         </motion.div>
       </main>
     </div>
