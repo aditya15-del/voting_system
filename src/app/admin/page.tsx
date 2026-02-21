@@ -1,8 +1,6 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { Trophy, Play, Square, UserPlus, Trash2, BarChart3, ChevronRight } from 'lucide-react'
+import { Trophy, Play, Square, UserPlus, Trash2, BarChart3, ChevronRight, LogOut, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Contestant {
@@ -20,7 +18,18 @@ interface AppControl {
     reveal_category: 'Performer' | 'Creator'
 }
 
+const AUTHORIZED_EMAILS = [
+    'genaivitbcommunity@gmail.com',
+    'aditya.24bce10533@vitbhopal.ac.in'
+]
+
 export default function AdminDashboard() {
+    const [user, setUser] = useState<any>(null)
+    const [authLoading, setAuthLoading] = useState(true)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [loginError, setLoginError] = useState('')
+
     const [contestants, setContestants] = useState<Contestant[]>([])
     const [control, setControl] = useState<AppControl | null>(null)
     const [newName, setNewName] = useState('')
@@ -29,7 +38,48 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        fetchData()
+        checkUser()
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            validateSession(session)
+        })
+        return () => subscription.unsubscribe()
+    }, [])
+
+    async function checkUser() {
+        const { data: { session } } = await supabase.auth.getSession()
+        validateSession(session)
+    }
+
+    async function validateSession(session: any) {
+        if (session?.user?.email && AUTHORIZED_EMAILS.includes(session.user.email)) {
+            setUser(session.user)
+            fetchData()
+        } else {
+            if (session) await supabase.auth.signOut()
+            setUser(null)
+        }
+        setAuthLoading(false)
+    }
+
+    async function handleLogin(e: React.FormEvent) {
+        e.preventDefault()
+        setLoginError('')
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+            setLoginError(error.message)
+        } else if (data.user?.email && !AUTHORIZED_EMAILS.includes(data.user.email)) {
+            setLoginError('Access denied. This email is not authorized.')
+            await supabase.auth.signOut()
+        }
+    }
+
+    async function handleLogout() {
+        await supabase.auth.signOut()
+        setUser(null)
+    }
+
+    useEffect(() => {
+        if (!user) return
 
         const controlSub = supabase
             .channel('admin_control')
@@ -49,7 +99,7 @@ export default function AdminDashboard() {
             supabase.removeChannel(controlSub)
             supabase.removeChannel(contestantsSub)
         }
-    }, [])
+    }, [user])
 
     async function fetchData() {
         const { data: cData } = await supabase.from('contestants').select('*').order('performance_order', { ascending: true })
@@ -60,6 +110,7 @@ export default function AdminDashboard() {
         setLoading(false)
     }
 
+    // ... (rest of the functions remain same)
     async function addContestant(e: React.FormEvent) {
         e.preventDefault()
         if (!newName || !newID) return
@@ -113,6 +164,7 @@ export default function AdminDashboard() {
     })
 
     useEffect(() => {
+        if (!user) return
         const fetchStats = async () => {
             const { data: votes } = await supabase.from('votes').select('contestant_id, score')
             if (!votes) return
@@ -166,9 +218,60 @@ export default function AdminDashboard() {
             .subscribe()
 
         return () => { supabase.removeChannel(voteSub) }
-    }, [contestants])
+    }, [contestants, user])
 
-    if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center font-sans">Loading Dashboard...</div>
+    if (authLoading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center font-sans tracking-[0.5em] uppercase">Checking Permissions...</div>
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6 font-sans">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-md bg-slate-900/50 border border-slate-800 p-8 rounded-[2rem] backdrop-blur-3xl shadow-2xl"
+                >
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                            <Lock className="w-8 h-8 text-emerald-400" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight">Admin Gate</h1>
+                        <p className="text-slate-500 text-sm mt-1">Authorized personnel only</p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2 px-1">Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2 px-1">Password</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                                required
+                            />
+                        </div>
+
+                        {loginError && (
+                            <p className="text-red-400 text-xs font-bold bg-red-400/10 p-3 rounded-lg border border-red-400/20">{loginError}</p>
+                        )}
+
+                        <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-4 rounded-xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] active:scale-95 uppercase tracking-widest text-sm">
+                            Access Dashboard
+                        </button>
+                    </form>
+                </motion.div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 font-sans selection:bg-emerald-500/30">
@@ -178,10 +281,10 @@ export default function AdminDashboard() {
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent text-left">
                         Admin Control Center
                     </h1>
-                    <p className="text-slate-400 mt-2">Manage contestants and live voting sessions</p>
+                    <p className="text-slate-400 mt-2">Authenticated as <span className="text-emerald-400 font-mono">{user.email}</span></p>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                     <div className="flex items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
                         <div className={`w-3 h-3 rounded-full animate-pulse ${control?.current_stage === 'Voting' ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]' : 'bg-slate-500'}`} />
                         <div>
@@ -190,13 +293,22 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={resetVotes}
-                        className="p-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all font-sans"
-                        title="Reset All Votes"
-                    >
-                        <Trash2 className="w-6 h-6" />
-                    </button>
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={handleLogout}
+                            className="p-3 bg-slate-900/50 text-slate-400 hover:text-white border border-slate-800 rounded-xl transition-all"
+                            title="Logout"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={resetVotes}
+                            className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-xl transition-all"
+                            title="Reset All Votes"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -57,6 +57,10 @@ BEGIN
         CREATE POLICY "Public insert access for votes" ON votes FOR INSERT WITH CHECK (true);
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read access for votes') THEN
+        CREATE POLICY "Public read access for votes" ON votes FOR SELECT USING (true);
+    END IF;
+
     -- Admin-like permissions for anonymous users (for development/prototype)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public insert access for contestants') THEN
         CREATE POLICY "Public insert access for contestants" ON contestants FOR INSERT WITH CHECK (true);
