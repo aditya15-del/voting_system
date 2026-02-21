@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { Trophy, Play, Square, UserPlus, Trash2, BarChart3, ChevronRight, LogOut, Lock } from 'lucide-react'
