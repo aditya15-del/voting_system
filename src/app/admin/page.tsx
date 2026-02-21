@@ -178,6 +178,8 @@ export default function AdminDashboard() {
                 totals[v.contestant_id].count += 1
             })
 
+            console.log(`[AdminHub] Processed ${votes.length} votes for ${Object.keys(totals).length} contestants`)
+
             let bestPerformerAvg = 0
             let topPerformerName = '---'
             let bestCreatorAvg = 0
@@ -216,8 +218,13 @@ export default function AdminDashboard() {
         fetchStats()
 
         const voteSub = supabase.channel('stats_sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, fetchStats)
-            .subscribe()
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, (payload) => {
+                console.log('[AdminHub] Real-time vote event received!', payload)
+                fetchStats()
+            })
+            .subscribe((status) => {
+                console.log('[AdminHub] Real-time subscription status:', status)
+            })
 
         return () => { supabase.removeChannel(voteSub) }
     }, [contestants, user])
