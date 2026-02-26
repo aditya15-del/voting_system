@@ -79,6 +79,7 @@ export default function VotingPage() {
     async function fetchContestant(id: string) {
         const { data } = await supabase.from('contestants').select('*').eq('id', id).single()
         setActiveContestant(data)
+        setHasVoted(false) // Reset voting status for the new contestant
         setScore(5) // Reset score slider
     }
 
