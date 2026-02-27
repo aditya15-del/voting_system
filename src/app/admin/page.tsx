@@ -174,7 +174,7 @@ export default function AdminDashboard() {
             const totals: Record<string, { sum: number, count: number }> = {}
             votes.forEach(v => {
                 if (!totals[v.contestant_id]) totals[v.contestant_id] = { sum: 0, count: 0 }
-                totals[v.contestant_id].sum += v.score
+                totals[v.contestant_id].sum += Number(v.score)
                 totals[v.contestant_id].count += 1
             })
 

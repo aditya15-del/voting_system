@@ -63,7 +63,7 @@ export default function RevealPage() {
 
         const calculated = contestants.map(c => {
             const cVotes = votes.filter(v => v.contestant_id === c.id)
-            const avg = cVotes.length > 0 ? cVotes.reduce((acc, curr) => acc + curr.score, 0) / cVotes.length : 0
+            const avg = cVotes.length > 0 ? cVotes.reduce((acc, curr) => acc + Number(curr.score), 0) / cVotes.length : 0
             return {
                 id: c.id,
                 name: c.name,
