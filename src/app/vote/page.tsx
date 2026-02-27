@@ -25,6 +25,7 @@ export default function VotingPage() {
     const [hasVoted, setHasVoted] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [transitioning, setTransitioning] = useState(false)
 
     useEffect(() => {
         // 1. Initialize Fingerprint
@@ -44,11 +45,16 @@ export default function VotingPage() {
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_control' }, (payload) => {
                 const newControl = payload.new as AppControl
                 setControl(newControl)
+
+                // Reset state immediately on transition
+                setHasVoted(false)
+                setTransitioning(true)
+
                 if (newControl.active_contestant_id) {
                     fetchContestant(newControl.active_contestant_id)
                 } else {
                     setActiveContestant(null)
-                    setHasVoted(false)
+                    setTransitioning(false)
                 }
             })
             .subscribe()
@@ -79,8 +85,9 @@ export default function VotingPage() {
     async function fetchContestant(id: string) {
         const { data } = await supabase.from('contestants').select('*').eq('id', id).single()
         setActiveContestant(data)
-        setHasVoted(false) // Reset voting status for the new contestant
+        setHasVoted(false) // Extra safety reset
         setScore(5) // Reset score slider
+        setTransitioning(false)
     }
 
     async function checkVoteStatus() {
@@ -99,17 +106,27 @@ export default function VotingPage() {
         if (!activeContestant || !deviceID || hasVoted || submitting) return
         setSubmitting(true)
 
-        const { error } = await supabase.from('votes').insert([
-            { contestant_id: activeContestant.id, device_id: deviceID, score }
-        ])
+        try {
+            const { error } = await supabase.from('votes').insert([
+                { contestant_id: activeContestant.id, device_id: deviceID, score }
+            ])
 
-        if (!error) {
-            setHasVoted(true)
+            if (error) {
+                console.error('Vote submission error:', error)
+                alert(`Failed to submit vote: ${error.message}`)
+            } else {
+                setHasVoted(true)
+            }
+        } catch (err) {
+            console.error('Unexpected error during submission:', err)
+            alert('An unexpected error occurred. Please try again.')
+        } finally {
+            setSubmitting(false)
         }
-        setSubmitting(false)
     }
 
     if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Initializing...</div>
+    if (transitioning) return <div className="min-h-screen bg-black text-white flex items-center justify-center font-bold tracking-widest animate-pulse">LOADING NEXT PERFORMANCE...</div>
 
     // STATES
     const isVotingOpen = control?.current_stage === 'Voting' && activeContestant
